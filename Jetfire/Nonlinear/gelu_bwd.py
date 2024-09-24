@@ -3,7 +3,8 @@ import torch
 import triton
 import triton.language as tl
 from triton.language.extra.cuda import libdevice
-from .quantize import _stochastic_rounding
+# from .quantize import _stochastic_rounding
+from quantize import _stochastic_rounding
 
 def get_configs_io_block():
     configs = []

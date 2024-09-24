@@ -13,11 +13,16 @@ parent_dir = os.path.dirname(current_dir)
 
 sys.path.append(parent_dir)
 
-from fgelu import int8_gelu_forward
-from bgelu import int8_gelu_backward
 from dequantize import int8_dequantize
-from quantize_s import int8_quantize_stochastic
-from quantize_d import int8_quantize_deterministic
+
+# from fgelu import int8_gelu_forward
+# from bgelu import int8_gelu_backward
+# from quantize_s import int8_quantize_stochastic
+# from quantize_d import int8_quantize_deterministic
+
+from gelu_fwd import int8_gelu_forward
+from gelu_bwd import int8_gelu_backward
+from quantize import int8_quantize
 
 import numpy as np
 
@@ -44,7 +49,8 @@ class _GeLU(autograd.Function):
         :return (torch.Tensor): Activation tensor of the same shape as the input
         """
         # Save input tensor and beta value for backward pass
-        qx, sx = int8_quantize_deterministic(x, B)
+        # qx, sx = int8_quantize_deterministic(x, B)
+        qx, sx = int8_quantize(x, B, stochastic=False)
         ctx.saved = sx, qx, B
 
         # Compute output activation
@@ -66,7 +72,8 @@ class _GeLU(autograd.Function):
         # Get saved variables
         sx, qx, B = ctx.saved
 
-        grad_y, grad_sy = int8_quantize_stochastic(grad_out, B)
+        # grad_y, grad_sy = int8_quantize_stochastic(grad_out, B)
+        grad_y, grad_sy = int8_quantize(grad_out, B, stochastic=True)
         
         # Compute gradient with triton kernel
         grad_qx, grad_sx = int8_gelu_backward(qx, sx, grad_y, grad_sy, B) # sx.shape, grad_sx.shape torch.Size([5, 64, 64]) torch.Size([5, 2, 2])

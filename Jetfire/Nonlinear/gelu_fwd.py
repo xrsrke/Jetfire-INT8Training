@@ -145,6 +145,8 @@ def int8_gelu_forward(x, s_x, QB):
         triton.cdiv(M, META["BLOCK_M"]) * triton.cdiv(N, META["BLOCK_N"]),
     )
 
+    from common import SCALE_MIN_THRES
+
     int8_gelu_kernel_forward[grid](
         y, s_y, x, s_x,
         M, N, SM, SN,
